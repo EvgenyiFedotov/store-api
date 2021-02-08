@@ -135,7 +135,12 @@ export function attach<
   [Key in keyof Source]: ReturnType<Source[Key]>;
 };
 
-type Use<
-  Depends extends Label<any, any>[],
-  Result = void,
-> = () => void;
+type Callback<Result = void> = () => Result;
+
+export function callback<Result = void>(
+  payload: (currentContext: ContextScope) => Result,
+  config?: {
+    side?: "both" | "server" | "client"; // Default: "both"
+    once?: boolean; // Default: true
+  }
+): Callback<Result>;
