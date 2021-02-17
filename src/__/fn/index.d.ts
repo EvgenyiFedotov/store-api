@@ -1,7 +1,9 @@
 import { Context } from "../context";
 
-export function fn<Result = void>(callback: (payload: { currentContext: Context }) => Result): FN<Result>;
+export function fn<Result = void>(payload: {
+  callback: (payload: { context: Context }) => Result
+}): FN<Result>;
 
-export type FN<Result = void> = (payload: { context: Context }) => FNCallback<Result>;
+export type FN<Result = void> = (payload: { context: Context }) => ContextFN<Result>;
 
-export type FNCallback<Result = void> = () => Result;
+export type ContextFN<Result = void> = () => Result;

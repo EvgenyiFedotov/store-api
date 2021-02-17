@@ -22,22 +22,22 @@ const percent = apiNumber({ init: 50 });
 const appAge = age({ context: app });
 const appPercent = percent({ context: app });
 
-const storeAge = store(appAge);
-const storePercent = store(appPercent);
+const storeAge = appAge(store);
+const storePercent = appPercent(store);
 
-storeAge.on(() => {}).off(() => {});
-storePercent.on(() => {}).off(() => {});
+storeAge.on((value) => {}).off(() => {});
+storePercent.on((value) => {}).off(() => {});
 
-const storeApiAge = storeApi(appAge);
-const storeApiPercent = storeApi(appPercent);
+const storeApiAge = appAge(storeApi);
+const storeApiPercent = appPercent(storeApi);
 
 storeApiAge.dec();
 storeApiAge.inc();
 storeApiPercent.set(10);
 storeApiPercent.dec(5);
 
-const storeApiListenAge = storeApiListen(appAge);
-const storeApiListenPercent = storeApiListen(appPercent);
+const storeApiListenAge = appAge(storeApiListen);
+const storeApiListenPercent = appPercent(storeApiListen);
 
 storeApiListenAge.dec.on(({ params, result }) => {}).off(() => {});
 storeApiListenPercent.reset.on(({ params, result }) => {}).off(() => {});

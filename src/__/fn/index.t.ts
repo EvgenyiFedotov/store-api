@@ -21,17 +21,19 @@ const apiNumber = typeNumber(({ get, set, reset }) => ({
 const labelAge = apiNumber({ init: 0 });
 const labelPercent = apiNumber({ init: 50 });
 
-const setAge = fn(async ({ currentContext }) => {
-  const age = labelAge({ context: currentContext });
-  const percent = labelPercent({ context: currentContext });
-
-  const ageApi = storeApi(age);
-  const percentApi = storeApi(percent);
-
-  ageApi.set(10);
-  percentApi.set(20);
-
-  return { ageApi, percentApi };
+const setAge = fn({
+  callback: async ({ context }) => {
+    const age = labelAge({ context });
+    const percent = labelPercent({ context });
+  
+    const ageApi = age(storeApi);
+    const percentApi = percent(storeApi);
+  
+    ageApi.set(10);
+    percentApi.set(20);
+  
+    return { ageApi, percentApi };
+  }
 });
 
 const appSetAge = setAge({ context: app });
