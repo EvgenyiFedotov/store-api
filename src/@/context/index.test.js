@@ -27,8 +27,8 @@ describe("label", () => {
     const labelAge = label(age);
 
     expect(labelAge() === labelAge()).toBe(true);
-    expect(label(age)() === label(age)()).toBe(true);
-    expect(createContext().label(age)() === label(age)()).toBe(false);
+    expect(() => label(age)).toThrow();
+    expect(createContext().label(age)() === labelAge()).toBe(false);
     expect(labelAge().inc).toBeInstanceOf(Function);
     expect(labelAge().dec).toBeInstanceOf(Function);
   });
@@ -187,28 +187,6 @@ describe("label", () => {
     expect(lage() === lage()).toBe(true);
     expect(lage("bob") === lage()).toBe(true);
     expect(lage()).toEqual({ note: "bob" });
-  });
-
-  test("separate hooks [by two callbacks]", () => {
-    const { label } = createContext();
-
-    const storeAge = label(function age({ useStore, useCheckType }) {
-      useCheckType((value) => typeof value === "number");
-
-      return useStore(0);
-    })();
-    const apiAge = label(function age({ useStore, useApi }) {
-      const { get, set } = useStore(0);
-
-      return useApi({
-        inc: () => set(get() + 1),
-        dec: () => set((prev) => prev - 1),
-      });
-    })();
-
-    expect(storeAge.get()).toBe(0);
-    expect(storeAge === apiAge).toBe(true);
-    expect(apiAge.set).toBeInstanceOf(Function);
   });
 
   test("separate hooks [by one callback, but use args]", () => {

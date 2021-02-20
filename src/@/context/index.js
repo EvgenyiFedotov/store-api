@@ -8,7 +8,8 @@ function createContext() {
       // console.log(callback.name);
 
       if (labels.has(callback.name)) {
-        return labels.get(callback.name)._label;
+        throw new Error("Label exist already");
+        // return labels.get(callback.name)._label;
       }
 
       const _config = {
@@ -27,12 +28,24 @@ function createContext() {
         setMeta: null,
       };
 
-      const payload = {
+      const _payload = {
         args: [],
         useApi: (api) => {
           if (_config.api) return _config.api;
           if (typeof api === "object") {
-            _config.api = api;
+            _config.api = {};
+            const apiKeys = Object.keys(api);
+            for (let index = 0; index < apiKeys.length; index += 1) {
+              const apiKey = apiKeys[index];
+              const _apiMethod = api[apiKey];
+              _config.api[apiKey] = (...params) => {
+                const result = _apiMethod(...params);
+                if (_config.apiEmitters) {
+                  _config.apiEmitters[apiKey].call({ params, result });
+                }
+                return result;
+              };
+            }
             return _config.api;
           }
           throw new Error("");
@@ -97,36 +110,30 @@ function createContext() {
           return _config.storeOnOff;
         },
         useListenApi: () => {
-          if (_config.api) {
-            if (_config.apiOnOff) {
-              return _config.apiOnOff;
-            }
-            _config.apiEmitters = {};
-            _config.apiOnOff = {};
-            const apiKeys = Object.keys(_config.api);
-            for (let index = 0; index < apiKeys.length; index += 1) {
-              const apiKey = apiKeys[index];
-              _config.apiEmitters[apiKey] = createEmitter();
-              _config.apiOnOff[apiKey] = {
-                on: (cb) => {
-                  _config.apiEmitters[apiKey].on(cb);
-                  return _config.apiOnOff[apiKey];
-                },
-                off: (cb) => {
-                  _config.apiEmitters[apiKey].off(cb);
-                  return _config.apiOnOff[apiKey];
-                },
-              };
-              const _apiMethod = _config.api[apiKey];
-              _config.api[apiKey] = (...params) => {
-                const result = _apiMethod(...params);
-                _config.apiEmitters[apiKey].call({ params, result });
-                return result;
-              };
-            }
+          if (_config.api === null) {
+            throw new Error("Api doesn't exist");
+          }
+          if (_config.apiOnOff) {
             return _config.apiOnOff;
           }
-          throw new Error("Api doesn't exist");
+          _config.apiEmitters = {};
+          _config.apiOnOff = {};
+          const apiKeys = Object.keys(_config.api);
+          for (let index = 0; index < apiKeys.length; index += 1) {
+            const apiKey = apiKeys[index];
+            _config.apiEmitters[apiKey] = createEmitter();
+            _config.apiOnOff[apiKey] = {
+              on: (cb) => {
+                _config.apiEmitters[apiKey].on(cb);
+                return _config.apiOnOff[apiKey];
+              },
+              off: (cb) => {
+                _config.apiEmitters[apiKey].off(cb);
+                return _config.apiOnOff[apiKey];
+              },
+            };
+          }
+          return _config.apiOnOff;
         },
         useMeta: (meta) => {
           if (_config.setMeta) return [_config.meta, _config.setMeta];
@@ -140,15 +147,11 @@ function createContext() {
       };
 
       const _label = (...args) => {
-        payload.args = args;
-        return callback(payload);
+        _payload.args = args;
+        return callback(_payload);
       };
 
-      labels.set(callback.name, {
-        _config,
-        payload,
-        _label,
-      });
+      labels.set(callback.name, { _config, _label, _payload, callback });
 
       return _label;
     }
